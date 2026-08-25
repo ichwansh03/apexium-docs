@@ -1,0 +1,62 @@
+---
+sidebar_position: 6
+title: Deployment & Operations
+description: Production deployment, environment variables, monitoring, and backups.
+---
+
+# ☁️ Deployment & Operations
+
+Production deployment, environment variables, monitoring, and backups.
+
+## Docker
+
+```bash
+docker pull your-org/apexium-log:latest
+```
+
+## Key Environment Variables
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `DB_URL` | JDBC URL | `jdbc:h2:~/apexium` |
+| `DB_USER` | DB username | `sa` |
+| `SF_CLIENT_ID` | Salesforce Connected App ID | (required) |
+| `SF_CLIENT_SECRET` | Salesforce secret | (required) |
+| `SF_USERNAME` | Integration user | (required) |
+| `STORAGE_TYPE` | `local` or `s3` | `local` |
+
+## Docker Compose Example
+
+```yaml
+version: '3'
+services:
+  apexium:
+    image: your-org/apexium-log:latest
+    ports: ["8080:8080"]
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/apexium
+      - SF_CLIENT_ID=...
+      - SF_CLIENT_SECRET=...
+    depends_on: [postgres]
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: apexium
+      POSTGRES_USER: apexium
+      POSTGRES_PASSWORD: secret
+    volumes: [pgdata:/var/lib/postgresql/data]
+volumes:
+  pgdata:
+```
+
+## CI/CD (GitHub Actions)
+
+- Build & test on every push/PR.
+- Publish Docker image on tags or merges to `main`.
+- Docs are built and deployed to GitHub Pages automatically.
+
+## Monitoring & Backups
+
+- Prometheus metrics via `/actuator/prometheus`.
+- Alerts: high error rates, slow Salesforce responses, DB failures.
+- Schedule daily DB dumps; if using S3, enable versioning.

@@ -1,0 +1,51 @@
+---
+sidebar_position: 1
+title: Getting Started
+description: Install, authenticate, and run your first debugging session in minutes.
+---
+
+# 🚀 Getting Started
+
+Install, authenticate, and run your first debugging session in minutes.
+
+## Prerequisites
+
+- Java 11+ & Kotlin 1.6+
+- Salesforce org (Developer, Sandbox, or Production) with API access
+- (Optional) Docker for containerised deployment
+
+## Installation (Local)
+
+```bash
+git clone https://github.com/your-org/apexium-log.git
+cd apexium-log
+./gradlew build
+# CLI available at build/bin/apexium-log
+```
+
+## Docker
+
+```bash
+docker pull your-org/apexium-log:latest
+docker run -it --rm your-org/apexium-log --help
+```
+
+## Quickstart Workflow
+
+```bash
+# 1. Authenticate
+apexium-log auth login --org my-org
+
+# 2. Enable trace for a user (60 min)
+apexium-log trace enable --user joe@example.com --duration 60
+
+# 3. Fetch logs
+apexium-log logs fetch --since "2026-08-01T00:00:00Z"
+
+# 4. View coverage
+apexium-log coverage report
+```
+
+:::tip Done!
+You now have persistent debug logs, automated trace flags, and coverage metrics.
+:::

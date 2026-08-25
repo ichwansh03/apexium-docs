@@ -1,0 +1,66 @@
+---
+sidebar_position: 5
+title: API Reference
+description: REST API for the backend. All endpoints under /api/v1.
+---
+
+# 📡 API Reference
+
+REST API for the backend. All endpoints under `/api/v1`.
+
+## Authentication
+
+Include `Authorization: Bearer <token>`. Obtain token via `/auth/login`.
+
+## Trace Flags
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/trace-flags` | List all schedules |
+| POST | `/trace-flags` | Create a schedule |
+| GET | `/trace-flags/{id}` | Get one schedule |
+| PUT | `/trace-flags/{id}` | Update |
+| DELETE | `/trace-flags/{id}` | Delete |
+
+### Example: Create a trace flag
+
+```http
+POST /api/v1/trace-flags
+{
+  "userId": "005...",
+  "startTime": "2026-08-25T09:00:00Z",
+  "endTime": "2026-08-25T17:00:00Z",
+  "logLevel": "DEBUG",
+  "recurrence": "DAILY"
+}
+```
+
+**Response (201)**
+
+```json
+{
+  "id": "123",
+  "userId": "005...",
+  "startTime": "2026-08-25T09:00:00Z",
+  "endTime": "2026-08-25T17:00:00Z",
+  "logLevel": "DEBUG",
+  "recurrence": "DAILY",
+  "createdAt": "2026-08-24T12:00:00Z"
+}
+```
+
+## Logs
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/logs` | Query logs (filters: user, time, etc.) |
+| GET | `/logs/{id}/download` | Download raw log |
+
+## Coverage
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/coverage` | Latest coverage per class |
+| POST | `/coverage/run` | Trigger a coverage run |
+
+**Rate limits:** 100 req/min per user; 500 req/min for UI (cached).

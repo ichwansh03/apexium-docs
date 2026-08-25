@@ -1,0 +1,53 @@
+---
+sidebar_position: 4
+title: Implementation Details
+description: "Dive into the codebase: modules, key classes, and how core features work."
+---
+
+# ⚙️ Implementation Details
+
+Dive into the codebase: modules, key classes, and how core features work.
+
+## Repository Structure
+
+```
+apexium-log/
+├── cli/                 # CLI entry point (Kotlin)
+├── core/                # Business logic, domain models
+├── persistence/         # JPA/Hibernate repositories
+├── salesforce-adapter/  # Salesforce API client
+├── scheduler/           # Quartz background jobs
+├── web-ui/              # Spring Boot dashboard
+└── tests/               # Unit & integration tests
+```
+
+## Key Packages & Classes
+
+- `com.apexium.cli.Main` – CLI entry.
+- `com.apexium.core.TraceSchedulerService` – CRUD & scheduling.
+- `com.apexium.core.LogCollector` – polls and writes logs.
+- `com.apexium.core.CoverageService` – coverage queries.
+- `com.apexium.persistence.LogRepository` – JPA for log metadata.
+- `com.apexium.salesforce.SalesforceClient` – REST/SOAP wrapper.
+
+## Trace Scheduling Internals
+
+1. User defines schedule (e.g., daily 9–5 for a user).
+2. `TraceSchedulerService` persists schedule and creates a Quartz job.
+3. At trigger time, job calls Salesforce adapter to create/update trace flag.
+4. At end time, job deactivates the flag.
+5. Full history retained in DB for audit.
+
+## Log Parsing & Storage
+
+- Raw logs fetched via REST (or SOAP).
+- Parsed to extract header (user, timestamp, size).
+- Raw content stored as blob (file or S3) with reference in `log_entries` table.
+- Optional Elasticsearch for fast search.
+
+## Testing Strategy
+
+- **Unit tests** – JUnit 5 + MockK.
+- **Integration tests** – local H2 + mock Salesforce.
+- **E2E tests** – real sandbox org (manual or CI on‑demand).
+- Tests live under `src/test/kotlin/` per module.

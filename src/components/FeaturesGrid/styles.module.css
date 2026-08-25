@@ -1,0 +1,78 @@
+.featuresSection {
+  padding: 2rem 0 3rem;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.sectionTitle {
+  font-size: 2.4rem;
+  font-weight: 700;
+  border-bottom: none;
+  margin-bottom: 0.5rem;
+}
+
+.sectionSub {
+  font-size: 1.1rem;
+  color: var(--apex-text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.featureCard {
+  background: var(--apex-surface);
+  border: 1px solid var(--apex-border);
+  border-radius: var(--apex-radius);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: var(--apex-shadow);
+}
+
+.featureCard:hover {
+  transform: translateY(-6px);
+  border-color: var(--apex-primary);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='dark'] .featureCard:hover {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.icon {
+  font-size: 2.8rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  margin: 0.5rem 0 0.5rem;
+  font-weight: 600;
+}
+
+.cardDescription {
+  font-size: 0.95rem;
+  color: var(--apex-text-muted);
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .featuresGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,37 @@
+---
+sidebar_position: 8
+title: Appendix
+description: Glossary, troubleshooting, FAQ, and sample debug session.
+---
+
+# 📚 Appendix
+
+## Glossary
+
+| Term | Definition |
+| --- | --- |
+| Trace Flag | Salesforce setting enabling debug logging for a user/class over a period. |
+| Debug Log | Generated log file with debug statements and system events. |
+| Coverage | Percentage of Apex code executed by tests. |
+| Metadata | Apex classes, VF pages, custom objects, etc. |
+
+## Troubleshooting
+
+- **INVALID_SESSION_ID** – token expired; run `apexium-log auth refresh`.
+- **Logs not collected** – verify trace flags are active and user has permissions.
+- **Zero coverage** – ensure test classes exist and have been executed.
+
+## FAQ
+
+- **Can I use it without the web UI?** Yes, the CLI is fully functional.
+- **How long are logs stored?** Indefinitely by default; configurable retention.
+- **Is it free?** Yes, MIT licensed open source.
+
+## Sample Debug Session
+
+```bash
+apexium-log trace enable --user dev@example.com --duration 30
+# ... run your Apex in Salesforce ...
+apexium-log logs fetch --user dev@example.com
+apexium-log logs analyze <logId> --warnings
+```

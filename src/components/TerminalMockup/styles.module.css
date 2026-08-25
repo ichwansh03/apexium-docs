@@ -1,0 +1,63 @@
+.terminalBox {
+  background: var(--apex-surface);
+  border-radius: var(--apex-radius);
+  padding: 1.5rem 1.8rem;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.terminalBox:hover {
+  transform: scale(1.02) translateY(-4px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+}
+
+.terminalDots {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: block;
+}
+
+.terminalPre {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  border: none;
+  color: var(--apex-text);
+  font-size: 0.85rem;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+.terminalPre code {
+  background: transparent;
+  padding: 0;
+  color: var(--apex-text);
+}
+
+.prompt {
+  color: var(--apex-primary);
+  font-weight: 600;
+}
+
+.comment {
+  color: var(--apex-text-muted);
+  font-style: italic;
+}
+
+.command {
+  color: var(--apex-text);
+}
+
+.success {
+  color: #27c93f;
+}

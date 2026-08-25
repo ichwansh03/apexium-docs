@@ -1,0 +1,41 @@
+---
+sidebar_position: 3
+title: Architecture & Design
+description: High‑level system design, components, and data flow.
+---
+
+# 🧩 Architecture & Design
+
+High‑level system design, components, and data flow.
+
+## Component Overview
+
+| Component | Responsibility |
+| --- | --- |
+| **CLI / Web UI** | User interfaces for interaction. |
+| **API Gateway** | RESTful orchestration of all operations. |
+| **Trace Scheduler** | Manages trace flag lifecycle in Salesforce. |
+| **Log Collector** | Polls Salesforce logs and persists them. |
+| **Coverage Engine** | Runs Apex coverage queries. |
+| **Metadata Tracker** | Monitors and records metadata changes. |
+| **Storage Layer** | PostgreSQL/H2 for structured data, S3/local for blobs. |
+| **Salesforce Adapter** | Handles REST/SOAP API calls. |
+
+## Data Flow
+
+1. User triggers action via CLI/UI → API Gateway.
+2. Gateway invokes the appropriate service (e.g., Trace Scheduler).
+3. Service interacts with Salesforce via adapter and stores results in DB.
+4. Response returned to user; all operations are audited.
+
+## Key Design Decisions
+
+- **Event‑sourced logs** – immutable events for replay and audit.
+- **Asynchronous polling** – background jobs for logs and coverage.
+- **Pluggable adapter** – to support future API versions or other CRMs.
+
+## Security
+
+- OAuth 2.0 (Salesforce) / API keys.
+- Encrypted secrets (client ID/secret).
+- RBAC planned for future releases.

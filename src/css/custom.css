@@ -1,0 +1,114 @@
+/**
+ * apexium-log theme overrides for Docusaurus/Infima
+ */
+
+/* ----- Light Mode ----- */
+:root {
+  --ifm-color-primary: #667eea;
+  --ifm-color-primary-dark: #5a67d8;
+  --ifm-color-primary-darker: #5260c9;
+  --ifm-color-primary-darkest: #4351b0;
+  --ifm-color-primary-light: #7c8ff0;
+  --ifm-color-primary-lighter: #8a9bf3;
+  --ifm-color-primary-lightest: #b5c0f7;
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ifm-heading-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* apexium custom tokens */
+  --apex-bg: #ffffff;
+  --apex-bg-secondary: #f8fafc;
+  --apex-surface: #ffffff;
+  --apex-text: #1a202c;
+  --apex-text-secondary: #4a5568;
+  --apex-text-muted: #718096;
+  --apex-border: #e2e8f0;
+  --apex-primary: #667eea;
+  --apex-primary-dark: #5a67d8;
+  --apex-primary-light: #ebf4ff;
+  --apex-code-bg: #f1f5f9;
+  --apex-code-text: #1e293b;
+  --apex-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  --apex-radius: 12px;
+  --apex-hero-start: #667eea;
+  --apex-hero-end: #764ba2;
+  --apex-hero-text: #ffffff;
+  --apex-hero-sub: rgba(255, 255, 255, 0.85);
+}
+
+/* ----- Dark Mode ----- */
+[data-theme='dark'] {
+  --ifm-color-primary: #818cf8;
+  --ifm-color-primary-dark: #6366f1;
+  --ifm-color-primary-darker: #5b5fe6;
+  --ifm-color-primary-darkest: #4b4dc5;
+  --ifm-color-primary-light: #a5b4fc;
+  --ifm-color-primary-lighter: #b4c3fd;
+  --ifm-color-primary-lightest: #dbe4fe;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+
+  --apex-bg: #0c0e1a;
+  --apex-bg-secondary: #141624;
+  --apex-surface: #1a1d2e;
+  --apex-text: #edf2f7;
+  --apex-text-secondary: #cbd5e1;
+  --apex-text-muted: #94a3b8;
+  --apex-border: #2d3148;
+  --apex-primary: #818cf8;
+  --apex-primary-dark: #6366f1;
+  --apex-primary-light: #2d3154;
+  --apex-code-bg: #1e2233;
+  --apex-code-text: #e2e8f0;
+  --apex-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --apex-hero-start: #4c51bf;
+  --apex-hero-end: #5a67d8;
+  --apex-hero-text: #ffffff;
+  --apex-hero-sub: rgba(255, 255, 255, 0.85);
+}
+
+/* ----- Global Overrides ----- */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ----- Badge ----- */
+.apex-badge {
+  display: inline-block;
+  background: var(--apex-primary-light);
+  color: var(--apex-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+
+/* ----- Scroll Reveal ----- */
+.apex-doc-section {
+  scroll-margin-top: 1.5rem;
+  margin-bottom: 4rem;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.apex-doc-section.reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ----- Anchor Link ----- */
+.apex-anchor-link {
+  font-size: 0.9rem;
+  font-weight: 400;
+  margin-left: 0.5rem;
+  color: var(--apex-text-muted);
+  text-decoration: none;
+  opacity: 0.6;
+}
+
+.apex-anchor-link:hover {
+  opacity: 1;
+  text-decoration: none;
+}
