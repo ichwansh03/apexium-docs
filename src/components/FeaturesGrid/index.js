@@ -3,40 +3,40 @@ import styles from './styles.module.css';
 
 const features = [
   {
-    icon: '🗄️',
-    title: 'Persistent Logs',
+    icon: '🚀',
+    title: 'Centralized Debugging',
     description:
-      'Keep debug history beyond Salesforce\'s 24‑hour retention. Search, filter, and export with ease.',
+      'Manage, search, download, and delete Salesforce Debug Logs from a single interface, making debugging more efficient.',
   },
   {
     icon: '⏰',
-    title: 'Auto‑Scheduling',
+    title: 'Extended Recurring Trace Flags',
     description:
-      'Schedule trace flags daily, weekly, or on a custom recurrence. Full history of past and upcoming traces.',
+      'Automatically extend user trace sessions beyond Salesforce\'s 24-hour Trace Flag limitation.',
   },
   {
-    icon: '📊',
-    title: 'Coverage Monitoring',
+    icon: '🧩',
+    title: 'Report-SOQL Conversion',
     description:
-      'Track Apex test coverage trends over time. Get alerts when coverage drops below your threshold.',
+      'Translate a Salesforce Report\'s filters and columns into an equivalent SOQL query automatically, useful for reproducing report logic in code or debugging data discrepancies.',
   },
   {
     icon: '🔍',
     title: 'Metadata Tracking',
     description:
-      'Audit changes to Apex classes, triggers, VF pages, and more. See who changed what and when.',
+      'Detect changes in Apex Classes and Triggers through scheduled polling, with a timeline view and body diff comparison via MinIO-stored snapshots. History records include who made the change and when.',
   },
   {
-    icon: '🖥️',
-    title: 'CLI & Web UI',
+    icon: '♻️',
+    title: 'Trace Job History & Adoption',
     description:
-      'Full‑featured CLI with auto‑completion, plus an optional web dashboard for visual monitoring.',
+      'Browse all past and active Trace Jobs, and adopt any existing Salesforce TraceFlag (created manually via Setup) as a managed job.',
   },
   {
-    icon: '🔒',
-    title: 'Enterprise Ready',
+    icon: '🎯',
+    title: 'Built for Salesforce Developers',
     description:
-      'OAuth 2.0 authentication, encrypted secrets, and role‑based access control (coming soon).',
+      'Who need an all-in-one solution for debugging, monitoring, and tracking Apex code changes.',
   },
 ];
 

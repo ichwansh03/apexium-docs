@@ -7,7 +7,7 @@ import CTASection from '@site/src/components/CTASection';
 export default function Home() {
   return (
     <Layout
-      title="apexium‑log · Salesforce Debugging Powerhouse"
+      title="Apexium · Salesforce Debugging Powerhouse"
       description="Automate trace flags, persist logs beyond Salesforce limits, track coverage, and monitor metadata — all in one powerful toolkit."
     >
       <HeroSection />
