@@ -23,14 +23,6 @@ export default function HeroSection() {
             <Link to="/docs/intro" className={styles.btnWhite}>
               Get Started →
             </Link>
-            <a
-              href="https://github.com"
-              className={styles.btnOutlineLight}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub
-            </a>
           </div>
           <div className={styles.heroStats}>
             {stats.map((stat, idx) => (

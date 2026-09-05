@@ -145,10 +145,12 @@ html {
 
 .switch-toggle .switch-icon {
   display: block;
-  top: 0.25em;
-  left: 0.25em;
+  top: 50%;
+  left: 1.5em;
   width: 2.5em;
   height: 2.5em;
+  margin-top: -1.25em;
+  margin-left: -1.25em;
   pointer-events: none;
 }
 

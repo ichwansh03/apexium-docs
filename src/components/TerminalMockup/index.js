@@ -2,17 +2,17 @@ import React from 'react';
 import styles from './styles.module.css';
 
 const TerminalLines = [
-  { prompt: '$', text: ' apexium-log auth login --org my-org', type: 'command' },
-  { text: '✓ Authenticated as dev@example.com', type: 'comment' },
+  { prompt: '$', text: ' ./apexium start', type: 'command' },
+  { text: '✓ Apexium run successful', type: 'success' },
   { prompt: '', text: '', type: 'empty' },
-  { prompt: '$', text: ' apexium-log trace enable --user joe --duration 60', type: 'command' },
-  { text: '✓ Trace flag scheduled (ID: tf-4a3b)', type: 'success' },
+  { prompt: '$', text: ' ./apexium init', type: 'command' },
+  { text: '✓ write sf config to .env_dev', type: 'comment' },
   { prompt: '', text: '', type: 'empty' },
-  { prompt: '$', text: ' apexium-log logs fetch --since today', type: 'command' },
-  { text: '✓ 142 logs retrieved · 2.3 MB', type: 'comment' },
+  { prompt: '$', text: ' ./apexium log', type: 'command' },
+  { text: '✓ 142 logs retrieved · 2.3 MB', type: 'success' },
   { prompt: '', text: '', type: 'empty' },
-  { prompt: '$', text: ' apexium-log coverage report', type: 'command' },
-  { text: '📊 Overall coverage: 87% · 12 classes at 100%', type: 'comment' },
+  { prompt: '$', text: ' ./apexium status', type: 'command' },
+  { text: '⬆️ status: UP', type: 'success' },
 ];
 
 export default function TerminalMockup() {
