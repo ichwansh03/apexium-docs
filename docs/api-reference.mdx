@@ -18,7 +18,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Logs
 
+The Logs API provides access to Salesforce debug logs. It supports fetching logs directly from Salesforce, retrieving processed logs from the local database, viewing full log bodies, downloading compressed files, and cleaning up old logs.
+
 ### Query Apex Logs from Salesforce
+
+Retrieves Apex log headers directly from Salesforce Tooling API. Use this to see the latest logs available in your org before storing them locally.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -32,6 +36,8 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 | `page` | int | 0 | Page number (0-indexed) |
 
 ### Get Logs from Database
+
+Retrieves processed logs stored in the local PostgreSQL database. Supports filtering by class name and author. Use this for fast, indexed searches without hitting Salesforce limits.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -48,11 +54,15 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ### Get Log Body
 
+Fetches the full text body of a specific Apex log. Checks local storage first (MinIO), falls back to Salesforce if needed. Use this to read the actual debug output for troubleshooting.
+
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/api/sfdc/logs/{id}/body` | Fetches full text body of a specific Apex log |
 
 ### Download Log File
+
+Downloads the compressed (.gz) log file from storage. Useful for archiving or importing into external analysis tools.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -68,11 +78,15 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ### Delete Log
 
+Deletes a specific Apex log from both Salesforce and local storage. Removes the record from the database and the file from MinIO.
+
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | DELETE | `/api/sfdc/logs/{id}` | Deletes a specific Apex log from Salesforce and local storage |
 
 ### Bulk Delete Logs
+
+Deletes multiple logs by ID in a single request. If no IDs are provided, deletes all logs. Use this to clean up storage or remove expired logs in bulk.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -88,7 +102,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Trace Flags
 
+Trace Flags tell Salesforce to capture debug logs for specific users or classes. This API lets you create, list, and delete trace flags directly through the Salesforce Tooling API.
+
 ### Create Trace Flag
+
+Creates a new TraceFlag in Salesforce for a target user or class. Specify the time window and log level to control what gets captured.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -118,17 +136,23 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ### Get Active Trace Flags
 
+Lists all currently active TraceFlags in the Salesforce org. Use this to see what tracing sessions are running right now.
+
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/api/sfdc/logs/trace-flags` | Lists all currently active TraceFlags |
 
 ### Get All Trace Flags
 
+Lists all TraceFlags (active and expired) from Salesforce. Useful for auditing past tracing sessions or finding expired flags to clean up.
+
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/api/sfdc/logs/trace-flags/all` | Lists all TraceFlags (active and expired) |
 
 ### Delete Trace Flag
+
+Deletes a specific TraceFlag from Salesforce. Stops the tracing session immediately.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -138,7 +162,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Trace Jobs
 
+Trace Jobs are managed tracing sessions that automatically handle Salesforce's 24-hour Trace Flag limit. They use a sliding window to extend trace flags before they expire, ensuring continuous logging without manual intervention.
+
 ### Create Trace Job
+
+Creates a managed trace job that automatically extends trace flags before they expire. Solves the problem of Salesforce's 24-hour limit by renewing flags on a schedule.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -147,6 +175,8 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 **Request Body:** Same as Trace Flag request.
 
 ### Get All Trace Jobs
+
+Lists all trace jobs with their current status (active, completed, cancelled). Use this to monitor which tracing sessions are running and their history.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -159,6 +189,8 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 | `targetName` | string | — | Filter by target user name |
 
 ### Adopt Existing Trace Flag
+
+Imports an existing Salesforce TraceFlag as a managed trace job. Use this to take over a trace flag you created manually in Salesforce and let Apexium manage its renewal.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -178,6 +210,8 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ### Cancel Trace Job
 
+Cancels a managed trace job and deletes its associated TraceFlag from Salesforce. Stops both the auto-renewal and the active tracing session.
+
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | DELETE | `/api/sfdc/logs/trace-jobs/{id}` | Cancels a managed trace job and deletes its associated TraceFlag |
@@ -186,7 +220,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Metadata
 
+The Metadata API tracks Apex classes and triggers in your Salesforce org. It detects changes through scheduled polling, stores body snapshots for comparison, and provides diff views to see exactly what changed between versions.
+
 ### Get Metadata Details
+
+Retrieves deep details for a specific Apex class or trigger, including code coverage percentage and related test classes. Use this to understand the impact of a class before deployment.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -201,11 +239,15 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ### Get Metadata History
 
+Returns the change history timeline for a specific Apex class or trigger, ordered newest first. Shows who made each change and when. Use this to track the evolution of a class over time.
+
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/api/sfdc/metadata/history/{type}/{id}` | Change history timeline for a specific Apex class or trigger |
 
 ### Get Metadata Diff
+
+Returns a diff between the current body and a specific historical snapshot. Shows exactly what lines were added, removed, or modified. Use this for code review or debugging regressions.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -221,7 +263,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Debug Levels
 
+Debug Levels control the verbosity of Salesforce debug logs. This API lets you view available configurations and search locally stored settings.
+
 ### Get Debug Levels from Salesforce
+
+Retrieves all available debug configurations directly from Salesforce. Use this to see what log levels are available in your org.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -235,6 +281,8 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 | `page` | int | 0 | Page number (0-indexed) |
 
 ### Search Debug Levels in Database
+
+Searches for debug levels stored in the local database. Use this for fast lookups without hitting Salesforce limits.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -252,7 +300,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Apex Classes
 
+The Apex Classes API provides access to your Salesforce org's Apex classes. You can fetch directly from Salesforce for real-time data, or search the local database for faster, indexed queries.
+
 ### Get Apex Classes from Salesforce
+
+Retrieves active Apex classes directly from Salesforce. Use this for the most up-to-date list of classes in your org.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -266,6 +318,8 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 | `page` | int | 0 | Page number (0-indexed) |
 
 ### Search Apex Classes in Database
+
+Searches for Apex classes stored in the local database. Use this for fast, indexed searches without consuming Salesforce API calls.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -283,7 +337,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Apex Triggers
 
+The Apex Triggers API provides access to your Salesforce org's Apex triggers. Similar to the Classes API, you can fetch from Salesforce or search the local database.
+
 ### Get Apex Triggers from Salesforce
+
+Retrieves active Apex triggers directly from Salesforce. Use this for the most current trigger list.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -297,6 +355,8 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 | `page` | int | 0 | Page number (0-indexed) |
 
 ### Search Apex Triggers in Database
+
+Searches for Apex triggers stored in the local database. Use this for fast, indexed searches.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -314,7 +374,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Reports
 
+The Reports API accesses Salesforce report metadata. You can list reports, describe their structure, and convert report filters into SOQL queries for programmatic access.
+
 ### Get Reports from Salesforce
+
+Retrieves report metadata directly from Salesforce. Use this to see what reports are available in your org.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -328,6 +392,8 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 | `page` | int | 0 | Page number (0-indexed) |
 
 ### Search Reports in Database
+
+Searches for report metadata stored in the local database. Use this for fast, indexed searches.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -343,11 +409,15 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ### Get Report Describe
 
+Retrieves full report metadata including filters, columns, and groupings from Salesforce Analytics API. Use this to understand a report's structure before querying its data.
+
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/api/sfdc/metadata/reports/{id}/describe` | Full report metadata including filters from Salesforce Analytics API |
 
 ### Convert Report to SOQL
+
+Converts report filters into a SOQL query string. Use this to programmatically replicate what a report does in plain SOQL.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -357,7 +427,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Users
 
+The Users API provides access to Salesforce user information. Useful for selecting trace flag targets and filtering logs by author.
+
 ### Get Users from Salesforce
+
+Retrieves active users directly from Salesforce. Use this to populate user selection dropdowns or match logs to specific users.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -371,6 +445,8 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 | `page` | int | 0 | Page number (0-indexed) |
 
 ### Search Users in Database
+
+Searches for users stored in the local database. Use this for fast, indexed searches without hitting Salesforce limits.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
@@ -388,7 +464,11 @@ Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
 ## Admin
 
+Admin endpoints for managing the application's internal state.
+
 ### Flush Salesforce Caches
+
+Flushes all Salesforce-related Redis cache keys (sf_tokens, sf_metadata, sf_users). Use this when you suspect stale data or after making changes in Salesforce that aren't reflected in the app.
 
 | Method | Endpoint | Description |
 | --- | --- | --- |

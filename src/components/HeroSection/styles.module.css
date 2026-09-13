@@ -59,26 +59,92 @@
   flex-wrap: wrap;
 }
 
-.btnWhite {
+.btnAnimated {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 2rem;
-  border-radius: 40px;
+  gap: 4px;
+  padding: 16px 36px;
+  border: 4px solid transparent;
+  font-size: 16px;
+  background-color: inherit;
+  border-radius: 100px;
   font-weight: 600;
-  font-size: 1rem;
-  background: #ffffff;
-  color: var(--apex-primary);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  color: #ffffff;
+  box-shadow: 0 0 0 2px #ffffff;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
   text-decoration: none;
-  transition: all 0.25s ease;
 }
 
-.btnWhite:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-  text-decoration: none;
-  color: var(--apex-primary-dark);
+.btnAnimated svg {
+  position: absolute;
+  width: 24px;
+  fill: #ffffff;
+  z-index: 9;
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.btnAnimated .arr1 {
+  right: 16px;
+}
+
+.btnAnimated .arr2 {
+  left: -25%;
+}
+
+.btnAnimated .circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.btnAnimated .text {
+  position: relative;
+  z-index: 1;
+  transform: translateX(-12px);
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.btnAnimated:hover {
+  box-shadow: 0 0 0 12px transparent;
+  color: #212121;
+  border-radius: 12px;
+}
+
+.btnAnimated:hover .arr1 {
+  right: -25%;
+}
+
+.btnAnimated:hover .arr2 {
+  left: 16px;
+}
+
+.btnAnimated:hover .text {
+  transform: translateX(12px);
+}
+
+.btnAnimated:hover svg {
+  fill: #212121;
+}
+
+.btnAnimated:active {
+  scale: 0.95;
+  box-shadow: 0 0 0 4px #ffffff;
+}
+
+.btnAnimated:hover .circle {
+  width: 220px;
+  height: 220px;
+  opacity: 1;
 }
 
 .btnOutlineLight {

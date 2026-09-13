@@ -4,9 +4,9 @@ import TerminalMockup from '../TerminalMockup';
 import styles from './styles.module.css';
 
 const stats = [
-  { number: '∞', label: 'Persistent Logs' },
-  { number: '24/7', label: 'Auto‑Scheduling' },
-  { number: '87%', label: 'Avg. Coverage' },
+  { number: '30+', label: 'Days Log Retention' },
+  { number: '24/7', label: 'Auto Trace Flags' },
+  { number: 'Real‑Time', label: 'Metadata Tracking' },
 ];
 
 export default function HeroSection() {
@@ -20,8 +20,23 @@ export default function HeroSection() {
             coverage, and monitor metadata — all in one powerful toolkit.
           </p>
           <div className={styles.heroActions}>
-            <Link to="/docs/intro" className={styles.btnWhite}>
-              Get Started →
+            <Link to="/docs/intro" className={styles.btnAnimated}>
+              <span className={styles.circle} />
+              <span className={styles.text}>Get Started</span>
+              <svg
+                className={styles.arr1}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+              >
+                <path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z" />
+              </svg>
+              <svg
+                className={styles.arr2}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+              >
+                <path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z" />
+              </svg>
             </Link>
           </div>
           <div className={styles.heroStats}>
