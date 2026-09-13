@@ -27,42 +27,152 @@
   gap: 2rem;
 }
 
+/* Card Base */
 .featureCard {
+  position: relative;
   background: var(--apex-surface);
   border: 1px solid var(--apex-border);
   border-radius: var(--apex-radius);
   padding: 2rem 1.5rem;
   text-align: center;
-  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
   box-shadow: var(--apex-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  transition: box-shadow 0.5s;
 }
 
+/* Expanding corners */
+.featureCard::before,
+.featureCard::after {
+  position: absolute;
+  content: "";
+  width: 20%;
+  height: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--apex-primary);
+  transition: all 0.5s ease;
+  z-index: 0;
+}
+
+.featureCard::before {
+  top: 0;
+  right: 0;
+  border-radius: 0 var(--apex-radius) 0 100%;
+}
+
+.featureCard::after {
+  bottom: 0;
+  left: 0;
+  border-radius: 0 100% 0 var(--apex-radius);
+}
+
+/* Hover: corners expand to fill */
+.featureCard:hover::before,
+.featureCard:hover::after {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--apex-radius);
+}
+
+/* Content layers */
+.cardDefault,
+.cardHover {
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.5s ease;
+}
+
+/* Default: show title */
+.cardDefault {
+  opacity: 1;
+}
+
+/* Hover: hide title */
+.featureCard:hover .cardDefault {
+  opacity: 0;
+}
+
+/* Hover content */
+.cardHover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+}
+
+.featureCard:hover .cardHover {
+  opacity: 1;
+}
+
+.hoverIcon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  filter: grayscale(0);
+}
+
+.hoverTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.5rem;
+  text-align: center;
+}
+
+.hoverDescription {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Icon shown by default */
+.defaultIcon {
+  font-size: 2.8rem;
+  display: block;
+  margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.5s ease;
+}
+
+.featureCard:hover .defaultIcon {
+  opacity: 0;
+}
+
+/* Title shown by default */
+.defaultTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--apex-text);
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.5s ease;
+}
+
+.featureCard:hover .defaultTitle {
+  opacity: 0;
+}
+
+/* Remove old hover */
 .featureCard:hover {
-  transform: translateY(-6px);
-  border-color: var(--apex-primary);
+  transform: none;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
 }
 
 [data-theme='dark'] .featureCard:hover {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-}
-
-.icon {
-  font-size: 2.8rem;
-  margin-bottom: 0.75rem;
-  display: block;
-}
-
-.cardTitle {
-  font-size: 1.2rem;
-  margin: 0.5rem 0 0.5rem;
-  font-weight: 600;
-}
-
-.cardDescription {
-  font-size: 0.95rem;
-  color: var(--apex-text-muted);
-  margin: 0;
 }
 
 @media (max-width: 900px) {

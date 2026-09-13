@@ -43,9 +43,12 @@ const features = [
 function FeatureCard({icon, title, description}) {
   return (
     <div className={styles.featureCard}>
-      <span className={styles.icon}>{icon}</span>
-      <h4 className={styles.cardTitle}>{title}</h4>
-      <p className={styles.cardDescription}>{description}</p>
+      <h4 className={styles.defaultTitle}>{title}</h4>
+      <div className={styles.cardHover}>
+        <span className={styles.hoverIcon}>{icon}</span>
+        <h4 className={styles.hoverTitle}>{title}</h4>
+        <p className={styles.hoverDescription}>{description}</p>
+      </div>
     </div>
   );
 }

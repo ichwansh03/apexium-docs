@@ -32,7 +32,7 @@ const config = {
         docs: {
           sidebarPath: './sidebars.js',
           editUrl:
-            'https://github.com/your-org/apexium-log/tree/main/',
+            'https://github.com/ichwansh03/apexium-log/tree/main/',
         },
         blog: false,
         theme: {
@@ -63,7 +63,7 @@ const config = {
             label: 'Docs',
           },
           {
-            href: 'https://github.com/your-org/apexium-log',
+            href: 'https://github.com/ichwansh03/apexium-log',
             label: 'GitHub',
             position: 'right',
           },
@@ -94,7 +94,7 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/your-org/apexium-log',
+                href: 'https://github.com/ichwansh03/apexium-log',
               },
             ],
           },
@@ -112,7 +112,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} apexium‑log. Built with ❤️ for Salesforce developers.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Ichwan Sholihin. Built with ❤️ for Salesforce developers.`,
       },
       prism: {
         theme: prismThemes.github,

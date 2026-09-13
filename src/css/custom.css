@@ -81,6 +81,16 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ----- Navbar ----- */
+.navbar {
+  padding-top: 0.1rem;
+  padding-bottom: 0.8rem;
+}
+
+.navbar__title {
+  font-weight: 700;
+}
+
 /* ----- Badge ----- */
 .apex-badge {
   display: inline-block;
