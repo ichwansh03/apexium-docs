@@ -1,31 +1,102 @@
 ---
 sidebar_position: 5
 title: API Reference
-description: REST API for the backend. All endpoints under /api/v1.
+description: REST API for the backend. All endpoints under /api/sfdc.
 ---
 
 # 📡 API Reference
 
-REST API for the backend. All endpoints under `/api/v1`.
+REST API for the backend. All endpoints under `/api/sfdc`.
+
+**Base URL:** `http://localhost:8080`
 
 ## Authentication
 
-Include `Authorization: Bearer <token>`. Obtain token via `/auth/login`.
+Include `Authorization: Bearer <token>` or `X-API-Key: <key>` header.
 
-## Trace Flags
+---
+
+## Logs
+
+### Query Apex Logs from Salesforce
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/trace-flags` | List all schedules |
-| POST | `/trace-flags` | Create a schedule |
-| GET | `/trace-flags/{id}` | Get one schedule |
-| PUT | `/trace-flags/{id}` | Update |
-| DELETE | `/trace-flags/{id}` | Delete |
+| GET | `/api/sfdc/logs` | Retrieves Apex log headers from Salesforce Tooling API |
 
-### Example: Create a trace flag
+**Query Parameters:**
 
-```http
-POST /api/v1/trace-flags
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | int | 10 | Number of records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+### Get Logs from Database
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/logs/db` | Retrieves processed logs stored in local PostgreSQL |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `className` | string | — | Filter by Apex class name |
+| `author` | string | — | Filter by author name |
+| `size` | int | 10 | Number of records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+### Get Log Body
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/logs/{id}/body` | Fetches full text body of a specific Apex log |
+
+### Download Log File
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/logs/{id}/download` | Downloads compressed (.gz) log file |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `operation` | string | — | Download file prefix |
+
+**Response:** `application/gzip` file
+
+### Delete Log
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| DELETE | `/api/sfdc/logs/{id}` | Deletes a specific Apex log from Salesforce and local storage |
+
+### Bulk Delete Logs
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| DELETE | `/api/sfdc/logs` | Deletes multiple logs by ID, or all logs if no IDs provided |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ids` | list | — | List of log IDs to delete. Omit to delete all. |
+
+---
+
+## Trace Flags
+
+### Create Trace Flag
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| POST | `/api/sfdc/logs/trace-flags` | Creates a new TraceFlag in Salesforce for a target user or class |
+
+**Request Body:**
+
+```json
 {
   "userId": "005...",
   "startTime": "2026-08-25T09:00:00Z",
@@ -35,32 +106,308 @@ POST /api/v1/trace-flags
 }
 ```
 
-**Response (201)**
+**Response (200):**
 
 ```json
 {
-  "id": "123",
-  "userId": "005...",
-  "startTime": "2026-08-25T09:00:00Z",
-  "endTime": "2026-08-25T17:00:00Z",
-  "logLevel": "DEBUG",
-  "recurrence": "DAILY",
-  "createdAt": "2026-08-24T12:00:00Z"
+  "id": "7tf...",
+  "success": true,
+  "errors": []
 }
 ```
 
-## Logs
+### Get Active Trace Flags
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/logs` | Query logs (filters: user, time, etc.) |
-| GET | `/logs/{id}/download` | Download raw log |
+| GET | `/api/sfdc/logs/trace-flags` | Lists all currently active TraceFlags |
 
-## Coverage
+### Get All Trace Flags
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| GET | `/coverage` | Latest coverage per class |
-| POST | `/coverage/run` | Trigger a coverage run |
+| GET | `/api/sfdc/logs/trace-flags/all` | Lists all TraceFlags (active and expired) |
 
-**Rate limits:** 100 req/min per user; 500 req/min for UI (cached).
+### Delete Trace Flag
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| DELETE | `/api/sfdc/logs/trace-flags/{id}` | Deletes a specific TraceFlag from Salesforce |
+
+---
+
+## Trace Jobs
+
+### Create Trace Job
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| POST | `/api/sfdc/logs/trace-jobs` | Creates a managed trace job that auto-handles Salesforce's 24-hour limit using sliding window |
+
+**Request Body:** Same as Trace Flag request.
+
+### Get All Trace Jobs
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/logs/trace-jobs` | Lists all trace jobs (active, completed, cancelled) |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `targetName` | string | — | Filter by target user name |
+
+### Adopt Existing Trace Flag
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| POST | `/api/sfdc/logs/trace-jobs/adopt` | Imports an existing Salesforce TraceFlag as a managed trace job |
+
+**Request Body:**
+
+```json
+{
+  "id": "7tf...",
+  "tracedEntityId": "005...",
+  "debugLevelId": "7dl...",
+  "startDate": "2026-08-25T09:00:00Z",
+  "expirationDate": "2026-08-25T17:00:00Z"
+}
+```
+
+### Cancel Trace Job
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| DELETE | `/api/sfdc/logs/trace-jobs/{id}` | Cancels a managed trace job and deletes its associated TraceFlag |
+
+---
+
+## Metadata
+
+### Get Metadata Details
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/details/{type}/{id}` | Deep details for an Apex class or trigger, including coverage and test classes |
+
+**Path Parameters:**
+
+| Param | Type | Description |
+| --- | --- | --- |
+| `type` | string | `class` or `trigger` |
+| `id` | string | Salesforce record ID |
+
+### Get Metadata History
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/history/{type}/{id}` | Change history timeline for a specific Apex class or trigger |
+
+### Get Metadata Diff
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/history/{type}/{id}/diff` | Diff between current body and a historical snapshot |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `historyId` | long | — | ID of the historical snapshot to diff |
+
+---
+
+## Debug Levels
+
+### Get Debug Levels from Salesforce
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/debug-levels` | Retrieves all debug configurations from Salesforce |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+### Search Debug Levels in Database
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/debug-levels/db` | Search debug levels stored locally |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | string | — | Filter by name |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+---
+
+## Apex Classes
+
+### Get Apex Classes from Salesforce
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/classes` | Retrieves active Apex classes from Salesforce |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+### Search Apex Classes in Database
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/classes/db` | Search Apex classes stored locally |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | string | — | Filter by class name |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+---
+
+## Apex Triggers
+
+### Get Apex Triggers from Salesforce
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/triggers` | Retrieves active Apex triggers from Salesforce |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+### Search Apex Triggers in Database
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/triggers/db` | Search Apex triggers stored locally |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | string | — | Filter by trigger name |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+---
+
+## Reports
+
+### Get Reports from Salesforce
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/reports` | Retrieves report metadata from Salesforce |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+### Search Reports in Database
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/reports/db` | Search report metadata stored locally |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | string | — | Filter by report name |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+### Get Report Describe
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/reports/{id}/describe` | Full report metadata including filters from Salesforce Analytics API |
+
+### Convert Report to SOQL
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/metadata/reports/{id}/soql` | Converts report filters to a SOQL query string |
+
+---
+
+## Users
+
+### Get Users from Salesforce
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/users` | Retrieves active users from Salesforce |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+### Search Users in Database
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/sfdc/users/db` | Search users stored locally |
+
+**Query Parameters:**
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| `name` | string | — | Filter by user name |
+| `size` | int | 10 | Records per page |
+| `page` | int | 0 | Page number (0-indexed) |
+
+---
+
+## Admin
+
+### Flush Salesforce Caches
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| POST | `/admin/cache/flush` | Flushes all Salesforce-related Redis cache keys (sf_tokens, sf_metadata, sf_users) |
+
+**Response (200):**
+
+```json
+{
+  "message": "All Salesforce caches flushed successfully",
+  "activeOrgId": "00D..."
+}
+```
+
+---
+
+## Interactive Documentation
+
+When the backend is running, explore the full API interactively:
+
+- **Swagger UI:** `http://localhost:8080/swagger-ui.html`
+- **OpenAPI Spec:** `http://localhost:8080/v3/api-docs`
