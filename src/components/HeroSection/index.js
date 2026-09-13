@@ -6,7 +6,7 @@ import styles from './styles.module.css';
 const stats = [
   { number: '30+', label: 'Days Log Retention' },
   { number: '24/7', label: 'Auto Trace Flags' },
-  { number: 'Real‑Time', label: 'Metadata Tracking' },
+  { number: 'Real-Time', label: 'Metadata Tracking' },
 ];
 
 export default function HeroSection() {
