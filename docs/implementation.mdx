@@ -12,42 +12,202 @@ Dive into the codebase: modules, key classes, and how core features work.
 
 ```
 apexium-log/
-├── cli/                 # CLI entry point (Kotlin)
-├── core/                # Business logic, domain models
-├── persistence/         # JPA/Hibernate repositories
-├── salesforce-adapter/  # Salesforce API client
-├── scheduler/           # Quartz background jobs
-├── web-ui/              # Spring Boot dashboard
-└── tests/               # Unit & integration tests
+├── apexium                          # CLI wrapper (bash) — setup wizard, stack control
+├── frontend/                        # React/TypeScript frontend (Vite, git submodule)
+├── src/main/kotlin/com/observability/sfdc/
+│   ├── SfdcApplication.kt           # Spring Boot entry point
+│   ├── config/                      # Spring configuration
+│   │   ├── MinioConfig.kt           # MinIO (S3) client setup
+│   │   ├── OpenApiConfig.kt         # Swagger/OpenAPI documentation
+│   │   ├── RedisConfig.kt           # Redis cache configuration
+│   │   └── SecurityConfig.kt        # CORS, API key auth
+│   ├── controller/                  # REST endpoints
+│   │   ├── AdminController.kt       # Cache management
+│   │   ├── SalesforceLogController.kt       # Logs, trace flags, trace jobs
+│   │   ├── SalesforceMetadataController.kt  # Classes, triggers, reports, debug levels
+│   │   └── SalesforceUserController.kt      # User retrieval
+│   ├── service/                     # Business logic interfaces
+│   │   ├── ApexLogService.kt
+│   │   ├── TraceFlagService.kt
+│   │   ├── ApexClassMetadataService.kt
+│   │   ├── ApexTriggerMetadataService.kt
+│   │   ├── DebugLevelMetadataService.kt
+│   │   ├── MetadataDetailService.kt
+│   │   ├── MetadataHistoryService.kt
+│   │   ├── ReportMetadataService.kt
+│   │   ├── UserService.kt
+│   │   ├── AuthService.kt
+│   │   ├── SalesforceBaseService.kt
+│   │   └── impl/                    # Concrete implementations
+│   │       └── OrgContextService.kt
+│   ├── repository/                  # JPA repositories
+│   ├── domain/                      # Entity classes
+│   ├── dto/                         # Data transfer objects
+│   ├── exception/                   # Custom exceptions
+│   └── util/                        # Utility helpers
+├── docker-compose.yml               # Infrastructure orchestration
+├── pom.xml                          # Maven build (backend)
+└── .env                             # Environment config (generated, git-ignored)
 ```
 
 ## Key Packages & Classes
 
-- `com.apexium.cli.Main` – CLI entry.
-- `com.apexium.core.TraceSchedulerService` – CRUD & scheduling.
-- `com.apexium.core.LogCollector` – polls and writes logs.
-- `com.apexium.core.CoverageService` – coverage queries.
-- `com.apexium.persistence.LogRepository` – JPA for log metadata.
-- `com.apexium.salesforce.SalesforceClient` – REST/SOAP wrapper.
+| Class | Package | Purpose |
+| --- | --- | --- |
+| `SfdcApplication` | root | Spring Boot entry point |
+| `SalesforceLogController` | controller | Logs CRUD, trace flags, trace jobs endpoints |
+| `SalesforceMetadataController` | controller | Classes, triggers, reports, debug levels endpoints |
+| `SalesforceUserController` | controller | User retrieval endpoints |
+| `AdminController` | controller | Cache flush endpoint |
+| `ApexLogService` | service | Log query, download, delete from Salesforce + local storage |
+| `TraceFlagService` | service | TraceFlag CRUD via Salesforce Tooling API |
+| `TraceJobService` | service.impl | Managed trace jobs with sliding window auto-renewal |
+| `MetadataHistoryService` | service | Change timeline and body diff comparison |
+| `MetadataDetailService` | service | Deep details with coverage and test classes |
+| `ReportMetadataService` | service | Report metadata, describe, SOQL conversion |
+| `OrgContextService` | service.impl | Multi-org context and Redis cache management |
+| `SalesforceBaseService` | service | Base class for Salesforce API communication |
+| `AuthService` | service | Salesforce OAuth 2.0 token management |
+| `MinioConfig` | config | MinIO client and bucket setup |
+| `RedisConfig` | config | Redis cache manager configuration |
+| `SecurityConfig` | config | CORS origins and API key filter |
 
-## Trace Scheduling Internals
+## Trace Job Sliding Window
 
-1. User defines schedule (e.g., daily 9–5 for a user).
-2. `TraceSchedulerService` persists schedule and creates a Quartz job.
-3. At trigger time, job calls Salesforce adapter to create/update trace flag.
-4. At end time, job deactivates the flag.
-5. Full history retained in DB for audit.
+The core innovation — solving Salesforce's 24-hour Trace Flag limit:
 
-## Log Parsing & Storage
+```
+1. User creates TraceJob via API
+   ↓
+2. TraceJobService creates TraceFlag in Salesforce (expires in 24h)
+   ↓
+3. Background scheduler monitors active jobs
+   ↓
+4. Before expiry (e.g., at 23h) → deletes old flag → creates new flag
+   ↓
+5. Sliding window repeats until user cancels
+   ↓
+6. User cancels → flag deleted → job marked completed
+```
 
-- Raw logs fetched via REST (or SOAP).
-- Parsed to extract header (user, timestamp, size).
-- Raw content stored as blob (file or S3) with reference in `log_entries` table.
-- Optional Elasticsearch for fast search.
+**Key class:** `TraceJobService` in `service/impl/`
 
-## Testing Strategy
+```kotlin
+// Simplified flow
+fun createJob(request: FrontendTraceFlagRequest): TraceJob {
+    val traceFlag = traceFlagService.createTraceFlag(request)
+    return traceJobRepository.save(TraceJob(...))
+}
 
-- **Unit tests** – JUnit 5 + MockK.
-- **Integration tests** – local H2 + mock Salesforce.
-- **E2E tests** – real sandbox org (manual or CI on‑demand).
-- Tests live under `src/test/kotlin/` per module.
+fun renewJob(job: TraceJob) {
+    traceFlagService.deleteTraceFlag(job.activeTraceFlagId)
+    val newFlag = traceFlagService.createTraceFlag(job.toRequest())
+    job.activeTraceFlagId = newFlag.id
+    traceJobRepository.save(job)
+}
+```
+
+## Metadata Change Tracking
+
+Scheduled polling detects changes in Apex classes and triggers:
+
+```
+Every 6 hours (configurable):
+  ↓
+1. Fetch all ApexClass/ApexTrigger from Salesforce Tooling API
+   ↓
+2. Compare with local database records
+   ↓
+3. If body changed → store snapshot in MinIO, record history entry
+   ↓
+4. History includes: who changed, when, old body reference
+   ↓
+5. Diff endpoint compares current body vs any historical snapshot
+```
+
+**Storage flow:**
+- Current body → PostgreSQL `body_text` column
+- Historical snapshots → MinIO (`sfdc-bucket/classes/{id}/{timestamp}`)
+- Diff → fetch both bodies, compute line-by-line diff
+
+## Log Polling & Storage
+
+```
+Every 1 minute:
+  ↓
+1. Query Salesforce Tooling API for new ApexLog records
+   ↓
+2. Filter out already-processed logs (by Salesforce ID)
+   ↓
+3. Store metadata in PostgreSQL (author, class, timestamp, size)
+   ↓
+4. Fetch full log body → compress → store in MinIO
+   ↓
+5. Body available via /api/sfdc/logs/{id}/body or /download
+```
+
+**Retention:** Logs older than 15 days are cleaned up daily at 6 AM.
+
+## CLI (`apexium`)
+
+Bash script that orchestrates the entire stack:
+
+| Command | Action |
+| --- | --- |
+| `./apexium start` | Runs setup wizard (if no .env), starts Docker Compose, waits for health |
+| `./apexium init` | Force re-runs wizard, overwrites Salesforce credentials |
+| `./apexium stop` | `docker compose down` |
+| `./apexium restart` | Stop then start |
+| `./apexium logs` | `docker compose logs -f app` |
+| `./apexium status` | Health check + container status |
+
+**Setup wizard flow:**
+1. Check prerequisites (Docker, Docker Compose, Java 21+)
+2. Prompt for Salesforce Instance URL, Consumer Key, Consumer Secret
+3. Write Salesforce config to `.env`
+4. Fill infrastructure defaults (PostgreSQL, Redis, MinIO, pgAdmin)
+5. Generate unique `APEXIUM_API_KEY` (openssl/rand)
+6. Run `docker compose up -d --build`
+7. Wait for backend health check
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Default | Purpose |
+| --- | --- | ---|
+| `SALESFORCE_INSTANCE_ORG` | — | Salesforce login URL |
+| `SALESFORCE_CLIENT_ID` | — | Connected App consumer key |
+| `SALESFORCE_CLIENT_SECRET` | — | Connected App consumer secret |
+| `SALESFORCE_GRANT_TYPE` | `client_credentials` | OAuth grant type |
+| `SALESFORCE_API_VERSION` | `v61.0` | Salesforce API version |
+| `DB_HOST` | `localhost` | PostgreSQL host |
+| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_NAME` | `sfdc_logs` | Database name |
+| `DB_USER` | `postgres` | Database user |
+| `DB_PASSWORD` | `postgres` | Database password |
+| `REDIS_HOST` | `localhost` | Redis host |
+| `REDIS_PORT` | `6379` | Redis port |
+| `MINIO_URL` | `http://localhost:9000` | MinIO endpoint |
+| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO access key |
+| `MINIO_SECRET_KEY` | `minioadmin` | MinIO secret key |
+| `MINIO_BUCKET_NAME` | `sfdc-bucket` | Storage bucket |
+| `APEXIUM_API_KEY` | auto-generated | Backend API key |
+| `APEXIUM_CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | CORS origins |
+
+### Scheduling Configuration
+
+| Property | Value | Description |
+| --- | --- | --- |
+| `log.poll.rate` | `PT1M` | Log polling interval (ISO 8601) |
+| `metadata.poll.rate` | `PT6H` | Metadata polling interval |
+| `metadata.poll.batch-size` | `200` | Records per metadata batch |
+| `log.retention.days` | `15` | Days to retain logs |
+| `log.retention.cron` | `0 0 6 * * ?` | Cleanup schedule (6 AM daily) |
+
+## Testing
+
+- **Unit tests** — JUnit 5 + MockK in `src/test/kotlin/`
+- **Integration tests** — PostgreSQL testcontainers + mocked Salesforce API
+- **E2E tests** — against a real Salesforce sandbox (manual or CI on-demand)
+- **Frontend tests** — Vitest + React Testing Library in `frontend/`

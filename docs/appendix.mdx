@@ -1,7 +1,7 @@
 ---
 sidebar_position: 8
 title: Appendix
-description: Glossary, troubleshooting, FAQ, and sample debug session.
+description: Glossary, troubleshooting, FAQ, and useful references.
 ---
 
 # 📚 Appendix
@@ -10,28 +10,132 @@ description: Glossary, troubleshooting, FAQ, and sample debug session.
 
 | Term | Definition |
 | --- | --- |
-| Trace Flag | Salesforce setting enabling debug logging for a user/class over a period. |
-| Debug Log | Generated log file with debug statements and system events. |
-| Coverage | Percentage of Apex code executed by tests. |
-| Metadata | Apex classes, VF pages, custom objects, etc. |
+| Trace Flag | Salesforce setting enabling debug logging for a user or class over a period. Created via Tooling API. |
+| Trace Job | Managed trace job in Apexium that auto-renews trace flags using a sliding window before the 24-hour expiry. |
+| Debug Log | Generated log file with debug statements and system events. Stored in Salesforce for 24h, in Apexium for 15+ days. |
+| Debug Level | Configuration controlling which events are logged (e.g., DB, FINEST, PROFILING). |
+| Apex Class | Compiled Apex code unit in Salesforce. Tracked by Apexium for metadata changes. |
+| Apex Trigger | Apex code that runs before/after DML events. Tracked by Apexium for metadata changes. |
+| Coverage | Percentage of Apex code executed by tests. Viewed via Apexium's coverage reports. |
+| Metadata | Apex classes, triggers, reports, debug levels, and other Salesforce configuration objects. |
+| Connected App | Salesforce app configured with OAuth 2.0 (Client Credentials flow) for API access. |
+| MinIO | S3-compatible object storage used by Apexium for log bodies and metadata snapshots. |
+| Org Context | Multi-org management — Apexium tracks which Salesforce org is currently active. |
 
 ## Troubleshooting
 
-- **INVALID_SESSION_ID** – token expired; run `apexium-log auth refresh`.
-- **Logs not collected** – verify trace flags are active and user has permissions.
-- **Zero coverage** – ensure test classes exist and have been executed.
+### Authentication
+
+| Error | Cause | Fix |
+| --- | --- | --- |
+| `INVALID_SESSION_ID` | Token expired or invalid | Run `./apexium init` to re-authenticate |
+| ` unauthorized_url` | Wrong instance URL | Check `SALESFORCE_INSTANCE_ORG` in `.env` |
+| `invalid_client` | Bad credentials | Verify Consumer Key/Secret in Connected App |
+
+### Logs
+
+| Issue | Cause | Fix |
+| --- | --- | --- |
+| No logs appearing | No trace flag active | Create a trace job: `POST /api/sfdc/logs/trace-jobs` |
+| Logs not storing | MinIO not running | Check `docker compose ps`, restart if needed |
+| Old logs missing | Retention cleanup ran | Default is 15 days, adjust `log.retention.days` |
+
+### Metadata
+
+| Issue | Cause | Fix |
+| --- | --- | --- |
+| Changes not detected | Polling interval | Metadata polls every 6 hours, wait or restart |
+| No classes showing | Not synced yet | Wait for next metadata poll cycle |
+| Diff not available | No history recorded | Changes only tracked after Apexium starts polling |
+
+### Infrastructure
+
+| Issue | Cause | Fix |
+| --- | --- | --- |
+| Backend won't start | Port 8080 in use | Stop conflicting service or change port |
+| PostgreSQL connection refused | DB not healthy | `docker compose restart db`, check logs |
+| Redis connection refused | Redis not running | `docker compose restart redis` |
+| MinIO bucket missing | First run | Bucket created automatically on startup |
 
 ## FAQ
 
-- **Can I use it without the web UI?** Yes, the CLI is fully functional.
-- **How long are logs stored?** Indefinitely by default; configurable retention.
-- **Is it free?** Yes, MIT licensed open source.
+### General
 
-## Sample Debug Session
+**Q: Can I use it without the web UI?**
+A: Yes. The backend REST API is fully functional. Use `curl` or any HTTP client.
+
+**Q: How long are logs stored?**
+A: 15 days by default. Configurable via `log.retention.days` in `.env`.
+
+**Q: Is it free?**
+A: Yes. MIT licensed open source.
+
+**Q: Which Salesforce editions are supported?**
+A: Any edition with API access (Developer, Enterprise, Unlimited). Professional Edition requires API add-on.
+
+### Trace Flags
+
+**Q: What happens when a trace flag expires?**
+A: If managed by a Trace Job, it auto-renews before expiry. Manual flags expire and stop logging.
+
+**Q: Can I trace multiple users at once?**
+A: Yes. Create separate trace jobs for each user.
+
+**Q: How long can I keep a trace flag active?**
+A: Indefinitely with Trace Jobs — they use a sliding window to renew before the 24-hour limit.
+
+### Metadata
+
+**Q: How often does Apexium check for changes?**
+A: Every 6 hours by default. Configurable via `metadata.poll.rate`.
+
+**Q: Does it track all metadata types?**
+A: Currently tracks Apex Classes, Apex Triggers, and Reports. More types planned.
+
+### Deployment
+
+**Q: Can I run without Docker?**
+A: Yes. Run PostgreSQL, Redis, and MinIO separately, then `./mvnw spring-boot:run`.
+
+**Q: What's the minimum Java version?**
+A: Java 21+. The Dockerfile uses Eclipse Temurin 25.
+
+**Q: Can I use an existing PostgreSQL instance?**
+A: Yes. Set `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` in `.env`.
+
+## Useful Endpoints
+
+Quick reference for common operations:
 
 ```bash
-apexium-log trace enable --user dev@example.com --duration 30
-# ... run your Apex in Salesforce ...
-apexium-log logs fetch --user dev@example.com
-apexium-log logs analyze <logId> --warnings
+# Health check
+curl http://localhost:8080/actuator/health
+
+# List logs from database
+curl http://localhost:8080/api/sfdc/logs/db
+
+# Create a trace job
+curl -X POST http://localhost:8080/api/sfdc/logs/trace-jobs \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"005...","startTime":"2026-09-15T09:00:00Z","endTime":"2026-09-15T17:00:00Z","logLevel":"DEBUG"}'
+
+# Get metadata history
+curl http://localhost:8080/api/sfdc/metadata/history/class/01p...
+
+# Flush cache
+curl -X POST http://localhost:8080/admin/cache/flush
+
+# Swagger UI
+open http://localhost:8080/swagger-ui.html
 ```
+
+## References
+
+| Resource | Link |
+| --- | --- |
+| GitHub Repository | [github.com/ichwansh03/apexium-log](https://github.com/ichwansh03/apexium-log) |
+| Docker Hub | [hub.docker.com/r/ichwansh03/apexium-log-app](https://hub.docker.com/r/ichwansh03/apexium-log-app) |
+| Salesforce Tooling API | [developer.salesforce.com/docs/atlas.en-us.api_tooling.meta](https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/) |
+| Salesforce REST API | [developer.salesforce.com/docs/atlas.en-us.api_rest.meta](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/) |
+| Spring Boot Docs | [spring.io/projects/spring-boot](https://spring.io/projects/spring-boot) |
+| MinIO Docs | [min.io/docs](https://min.io/docs/) |

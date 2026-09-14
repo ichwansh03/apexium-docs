@@ -8,31 +8,72 @@ description: Every tool you need to master Salesforce debugging.
 
 Every tool you need to master Salesforce debugging.
 
-## 📋 Debug Log Management
+## 🚀 Centralized Debug Log Management
 
-- **Persistent storage** – keep logs beyond Salesforce's 24‑hour retention.
-- **Filter & search** – by user, time, log level, or Apex class.
-- **Export** – JSON, CSV, or raw format.
+Manage, search, download, and delete Salesforce Debug Logs from a single interface, making debugging more efficient.
 
-## ⏰ Trace Flag Automation
+- **Persistent storage** – keep logs for 15+ days, beyond Salesforce's native retention limits.
+- **Full log body** – fetch complete debug output from MinIO storage, not just headers.
+- **Download as .gz** – compressed log files for import into external analysis tools.
+- **Filter & search** – by Apex class name, author, or time range.
+- **Bulk delete** – clean up multiple logs or all logs at once to free storage.
 
-- Schedule start/end times with recurrence (daily, weekly, custom).
-- Scope to user, class, or entire org.
-- Full history of past & upcoming traces.
+## ⏰ Automated Recurring Trace Flags
 
-## 📊 Apex Coverage Monitoring
+Automatically extend user trace sessions beyond Salesforce's 24-hour Trace Flag limitation.
 
-- On‑demand or scheduled coverage reports.
-- Track coverage trends over time.
-- Alerts when coverage drops below threshold.
+- **Create trace flags** – target specific users or classes with custom log levels.
+- **Sliding window renewal** – trace jobs auto-renew flags before expiry, ensuring continuous logging.
+- **Adopt existing flags** – import trace flags you created manually in Salesforce Setup.
+- **Full history** – view all active and expired trace flags.
+
+## 📊 Apex Code Coverage Reports
+
+View code coverage for all Apex Classes and Triggers in a centralized dashboard, helping ensure deployment readiness.
+
+- **Coverage per class** – see which classes need more test coverage.
+- **Test class mapping** – identify which test classes cover each Apex class.
+- **On-demand reports** – generate coverage reports whenever needed.
 
 ## 🔍 Metadata Change Tracking
 
-- Detect changes to Apex classes, triggers, VF pages, etc.
-- Audit trail with who, what, and when.
-- Diff view between versions.
+Detect changes in Apex Classes and Triggers through scheduled polling, with a timeline view and body diff comparison via MinIO-stored snapshots.
 
-## 🖥️ CLI & Web UI
+- **Change timeline** – see who changed what and when, ordered newest first.
+- **Body snapshots** – historical versions stored in MinIO for long-term retention.
+- **Diff comparison** – view line-by-line differences between any two versions.
+- **Scheduled polling** – checks for metadata changes every 6 hours automatically.
 
-- Full‑featured CLI with auto‑completion.
-- Optional web dashboard for visual monitoring.
+## 🧩 Report-SOQL Conversion
+
+Translate a Salesforce Report's filters and columns into an equivalent SOQL query automatically, useful for reproducing report logic in code or debugging data discrepancies.
+
+- **Report describe** – view full report metadata including filters and columns.
+- **SOQL conversion** – convert report filters to a SOQL query string.
+- **Report metadata** – browse all reports stored locally or from Salesforce.
+
+## ♻️ Trace Job History & Adoption
+
+Browse all past and active Trace Jobs, and adopt any existing Salesforce TraceFlag (created manually via Setup) as a managed job.
+
+- **Job listing** – view all trace jobs with status (active, completed, cancelled).
+- **Search by user** – filter jobs by target user name.
+- **Adopt flags** – import existing Salesforce trace flags into managed jobs.
+- **Cancel jobs** – stop a managed job and delete its associated trace flag.
+
+## 🗃️ Extended Debug Log Retention
+
+Retain Debug Logs for up to 30 days, even after they have expired or been removed from Salesforce.
+
+- **15-day default** – configurable retention period via `log.retention.days`.
+- **Automated cleanup** – daily cron job removes expired logs.
+- **MinIO storage** – compressed log bodies stored in S3-compatible object storage.
+
+## 🛡️ Built for Salesforce Developers
+
+Who need an all-in-one solution for debugging, monitoring, and tracking Apex code changes.
+
+- **Multi-org support** – manage multiple Salesforce orgs from one instance.
+- **API key auth** – secure backend access with auto-generated API keys.
+- **CORS configurable** – control which frontend origins can access the API.
+- **Docker ready** – one command to start the entire stack.
