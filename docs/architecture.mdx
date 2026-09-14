@@ -8,34 +8,182 @@ description: High‑level system design, components, and data flow.
 
 High‑level system design, components, and data flow.
 
-## Component Overview
+## System Overview
 
-| Component | Responsibility |
+Apexium-log is a full-stack application with a Kotlin/Spring Boot backend, React/TypeScript frontend, and Docker Compose orchestrating infrastructure services. The backend periodically polls Salesforce via REST and Tooling APIs, stores data in PostgreSQL and MinIO, and caches frequently accessed data in Redis.
+
+```
++----------------+      Tooling / REST API      +-------------------+
+|   Salesforce   | <----------------------------> |  Kotlin Backend  |
+| (ApexLogs,     |   (Poll logs & metadata)      |  (Spring Boot)   |
+|  ApexClass,    |                                |                   |
+|  ApexTrigger,  |                                +---------+---------+
+|  TraceFlag)    |                                          |
++----------------+                          +---------------+---------------+
+                                            |               |               |
+                                            v               v               v
+                                    +-----------+   +-----------+   +---------------+
+                                    | PostgreSQL |   |   MinIO   |   |    Redis      |
+                                    | (Metadata, |   | (Log Body |   |  (Cache,      |
+                                    |  History,  |   |  Storage) |   |   Sessions)   |
+                                    |  Jobs)     |   |           |   |               |
+                                    +-----------+   +-----------+   +---------------+
+                                            |
+                                            v
+                                    +---------------+
+                                    | React Frontend|
+                                    | (TypeScript)  |
+                                    +---------------+
+```
+
+## Components
+
+### Backend (Kotlin / Spring Boot)
+
+Located in `src/main/kotlin/com/observability/sfdc/`. Organized into layered packages:
+
+| Package | Responsibility |
 | --- | --- |
-| **CLI / Web UI** | User interfaces for interaction. |
-| **API Gateway** | RESTful orchestration of all operations. |
-| **Trace Scheduler** | Manages trace flag lifecycle in Salesforce. |
-| **Log Collector** | Polls Salesforce logs and persists them. |
-| **Coverage Engine** | Runs Apex coverage queries. |
-| **Metadata Tracker** | Monitors and records metadata changes. |
-| **Storage Layer** | PostgreSQL/H2 for structured data, S3/local for blobs. |
-| **Salesforce Adapter** | Handles REST/SOAP API calls. |
+| `controller` | REST endpoints — AdminController, SalesforceLogController, SalesforceMetadataController, SalesforceUserController |
+| `service` | Business logic — ApexLogService, TraceFlagService, TraceJobService, MetadataHistoryService, ReportMetadataService, UserService |
+| `service.impl` | Concrete implementations — OrgContextService, TraceJobService |
+| `repository` | JPA/SQL repositories for PostgreSQL access |
+| `domain` | Entity classes — Log, ApexClass, ApexTrigger, TraceJob, DebugLevel, Report, User |
+| `dto` | Data transfer objects for API requests/responses |
+| `config` | Spring configuration — security, scheduling, MinIO, Redis, CORS |
+| `exception` | Custom exception types |
+| `util` | Utility helpers |
+
+**Key services:**
+
+| Service | Purpose |
+| --- | --- |
+| `ApexLogService` | Query, download, delete debug logs from Salesforce and local storage |
+| `TraceFlagService` | CRUD TraceFlags via Salesforce Tooling API |
+| `TraceJobService` | Managed trace jobs with sliding window — auto-renews flags before 24h expiry |
+| `ApexClassMetadataService` | Track and search Apex classes |
+| `ApexTriggerMetadataService` | Track and search Apex triggers |
+| `MetadataHistoryService` | Change timeline and body diff comparison |
+| `MetadataDetailService` | Deep details including coverage and test classes |
+| `ReportMetadataService` | Report metadata, describe, and SOQL conversion |
+| `DebugLevelMetadataService` | Debug level configurations |
+| `UserService` | Salesforce user retrieval and search |
+| `OrgContextService` | Multi-org context and Redis cache management |
+| `AuthService` | Salesforce OAuth 2.0 authentication |
+
+### Frontend (React / TypeScript)
+
+Located in `frontend/`. Built with Vite. Communicates with the backend via REST API.
+
+### Infrastructure Services
+
+Defined in `docker-compose.yml`:
+
+| Service | Image | Port | Purpose |
+| --- | --- | --- | --- |
+| **app** | Custom build | 8080 | Kotlin/Spring Boot backend |
+| **db** | `postgres:17` | 5432 | Structured data — logs, classes, triggers, trace jobs, metadata history |
+| **redis** | `redis:alpine` | 6379 | Caching — Salesforce tokens, metadata queries, user sessions |
+| **minio** | `quay.io/minio/minio` | 9000/9001 | Object storage — log body files, Apex class/trigger body snapshots |
 
 ## Data Flow
 
-1. User triggers action via CLI/UI → API Gateway.
-2. Gateway invokes the appropriate service (e.g., Trace Scheduler).
-3. Service interacts with Salesforce via adapter and stores results in DB.
-4. Response returned to user; all operations are audited.
+### Log Polling (every 1 minute)
 
-## Key Design Decisions
+```
+Scheduler → ApexLogService → Salesforce Tooling API → Fetch new ApexLog records
+                                    ↓
+                            Store metadata in PostgreSQL
+                            Store log body in MinIO
+```
 
-- **Event‑sourced logs** – immutable events for replay and audit.
-- **Asynchronous polling** – background jobs for logs and coverage.
-- **Pluggable adapter** – to support future API versions or other CRMs.
+### Metadata Polling (every 6 hours)
+
+```
+Scheduler → Metadata services → Salesforce Tooling API → Fetch ApexClass, ApexTrigger, DebugLevel
+                                        ↓
+                                Store in PostgreSQL
+                                Snapshot bodies in MinIO
+                                Record change history (who, when)
+```
+
+### Trace Job Lifecycle
+
+```
+User creates TraceJob → Creates TraceFlag in Salesforce
+                                    ↓
+                        Scheduler monitors expiry
+                                    ↓
+                        Before 24h limit → Deletes old flag → Creates new flag (sliding window)
+                                    ↓
+                        User cancels → Deletes flag → Marks job completed
+```
+
+### User Request Flow
+
+```
+React Frontend → REST API → Controller → Service → Salesforce API / PostgreSQL / MinIO
+                                              ↓
+                                        Response to UI
+```
+
+## Storage Design
+
+### PostgreSQL
+
+| Table | Stores |
+| --- | --- |
+| `logs` | Debug log metadata — ID, author, class, request time, org ID |
+| `apex_classes` | Apex class records — name, body, coverage, org ID |
+| `apex_triggers` | Apex trigger records — name, body, org ID |
+| `trace_jobs` | Managed trace jobs — target user, status, schedule config |
+| `debug_levels` | Debug level configurations |
+| `metadata_history` | Change timeline — entity type, entity ID, changed by, changed at, body snapshot reference |
+| `reports` | Report metadata |
+| `users` | Salesforce user records |
+
+### MinIO (S3-compatible)
+
+| Bucket | Stores |
+| --- | --- |
+| `sfdc-bucket` | Full debug log body files (.gz), Apex class/trigger body snapshots for diff comparison |
+
+### Redis
+
+| Key pattern | Stores | TTL |
+| --- | --- | --- |
+| `sf_tokens:*` | Salesforce OAuth access tokens | 1 hour |
+| `sf_metadata:*` | Cached metadata queries | 1 hour |
+| `sf_users:*` | Cached user lookups | 1 hour |
+
+## Polling Configuration
+
+Defined in `application.properties`:
+
+| Setting | Value | Purpose |
+| --- | --- | --- |
+| `log.poll.rate` | 1 minute | How often to poll for new debug logs |
+| `metadata.poll.rate` | 6 hours | How often to poll for metadata changes |
+| `metadata.poll.batch-size` | 200 | Records per metadata poll batch |
+| `log.retention.days` | 15 | Days to retain logs before cleanup |
+| `log.retention.cron` | `0 0 6 * * ?` | Daily cleanup schedule (6 AM) |
 
 ## Security
 
-- OAuth 2.0 (Salesforce) / API keys.
-- Encrypted secrets (client ID/secret).
-- RBAC planned for future releases.
+- **OAuth 2.0** — Salesforce Connected App with Client Credentials flow
+- **API Key** — Optional `X-API-Key` header for backend access
+- **CORS** — Configurable allowed origins via `APEXIUM_CORS_ALLOWED_ORIGINS`
+- **Secrets** — Environment variables via `.env` file, never committed to repo
+
+## Tech Stack
+
+| Layer | Technology |
+| --- | --- |
+| Backend | Kotlin 2.1.0, Spring Boot 4.0.6 |
+| Frontend | React 19, TypeScript, Vite |
+| Database | PostgreSQL 17 |
+| Cache | Redis (Alpine) |
+| Object Storage | MinIO (S3-compatible) |
+| Build | Maven (backend), npm (frontend) |
+| Orchestration | Docker Compose |
+| API Protocol | Salesforce REST API & Tooling API |
