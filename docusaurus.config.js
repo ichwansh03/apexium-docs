@@ -31,8 +31,6 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
-          editUrl:
-            'https://github.com/ichwansh03/apexium-log/tree/main/',
         },
         blog: false,
         theme: {
