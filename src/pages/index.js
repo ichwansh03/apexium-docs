@@ -2,6 +2,7 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import HeroSection from '@site/src/components/HeroSection';
 import FeaturesGrid from '@site/src/components/FeaturesGrid';
+import GallerySlider from '@site/src/components/GallerySlider';
 import CTASection from '@site/src/components/CTASection';
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
       <HeroSection />
       <main style={{padding: '0 2rem', maxWidth: '1100px', margin: '0 auto'}}>
         <FeaturesGrid />
+        <GallerySlider />
         <CTASection />
       </main>
     </Layout>
