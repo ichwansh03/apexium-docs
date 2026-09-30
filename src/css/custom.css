@@ -2,6 +2,51 @@
  * apexium-log theme overrides for Docusaurus/Infima
  */
 
+/* ----- Web Fonts ----- */
+/* Poppins: loaded via <link> in docusaurus.config.js (titles/headings) */
+
+/* Clarity City (SIL OFL, VMware) — descriptions/body text */
+@font-face {
+  font-family: 'Clarity City';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local('Clarity City'),
+    url('https://cdn.jsdelivr.net/npm/@cds/city@1.1.0/Webfonts/WOFF2/ClarityCity-Regular.woff2')
+      format('woff2');
+}
+@font-face {
+  font-family: 'Clarity City';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local('Clarity City'),
+    url('https://cdn.jsdelivr.net/npm/@cds/city@1.1.0/Webfonts/WOFF2/ClarityCity-Medium.woff2')
+      format('woff2');
+}
+@font-face {
+  font-family: 'Clarity City';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local('Clarity City'),
+    url('https://cdn.jsdelivr.net/npm/@cds/city@1.1.0/Webfonts/WOFF2/ClarityCity-SemiBold.woff2')
+      format('woff2');
+}
+@font-face {
+  font-family: 'Clarity City';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src:
+    local('Clarity City'),
+    url('https://cdn.jsdelivr.net/npm/@cds/city@1.1.0/Webfonts/WOFF2/ClarityCity-Bold.woff2')
+      format('woff2');
+}
+
 /* ----- Light Mode ----- */
 :root {
   --ifm-color-primary: #667eea;
@@ -12,8 +57,8 @@
   --ifm-color-primary-lighter: #8a9bf3;
   --ifm-color-primary-lightest: #b5c0f7;
   --ifm-code-font-size: 95%;
-  --ifm-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --ifm-heading-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ifm-font-family-base: 'Clarity City', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ifm-heading-font-family: 'Poppins', 'Clarity City', -apple-system, BlinkMacSystemFont, sans-serif;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 
   /* apexium custom tokens */
